@@ -1,0 +1,74 @@
+####GAME RULES####
+Each player starts with 10 HP
+Each turn a player can move 3 tiles without losing HP
+Each turn a player can move 3 extra tiles at the expense of 1 HP per tile
+Standard CryptoRoyale color scheme rules. (ColorA kills ColorB kills ColorC kills ColorA)
+Manual movement by selecting tiles in sequence. (Arrow keys/Mouse swipe on pc and swipe/tap on mobile)
+Map consists of "safe-area" and "dead-space". Players can go into dead-space but lose HP during movement phase.
+
+####IDEAS & QUESTIONS####
+Do we build up moves if player doesn't use all tile movements in turn? 
+
+####GAME FLOW####
+Grid map loads
+Players are positioned randomly on grid
+countdown "3-2-1 game start"
+
+####SELECTION PHASE#### [5-10 seconds from player perspective]
+-a circle appears showing range of movement for this turn
+-plan your next move by selecting tiles in sequence
+-selecting active tile will disable it and any tile after to allow mistakes to be fixed
+
+####MOVEMENT PHASE####
+-all players in match are moved simultaneously
+--[REACTIONS]
+--IF (player moves to empty tile) { nothing happens }
+--IF (player collides with orb) { player gains 1 HP and changes color if orb is different color. new orb appears somewhere else }
+--IF (player move to same tile as another player) { scroll to [player-player-collision] }
+--IF (playerA and playerB are next to each other and move to each other's tile) { normal player-player-collision with double knockback and hp loss }
+--IF (player is in dead-space) { player loses 1HP }
+-after all reactions are calculated movement phase is complete and selection phase begins again.
+
+####GAME END CONDITIONS####
+Last player standing wins (what if there is a draw?)
+Each turn safe area gets smaller to move the game forward
+
+
+####PLAYER-PLAYER-COLLISION####
+IF (playerA and playerB are the same color) {
+    
+    IF (playerA.HP == playerB.HP) { // SAME HEALTH
+
+        Both lose 1 (maybe 2?) HP and knocked back to last tile;
+
+    } ELSE IF (playerA.HP > playerB.HP) { // playerA wins
+
+        playerA gains 1 HP;
+        playerA stays on tile;
+        
+        playerB loses 1 HP;
+        playerB knocked back to last tile;
+
+    } ELSE IF (playerA.HP < playerB.HP) { // playerB wins
+
+        playerB gains 1 HP;
+        playerB stays on tile;
+        
+        playerA loses 1 HP;
+        playerA knocked back to last tile;
+
+    }
+
+} ELSE IF (playerA and playerB are different colors) {
+
+    Standard CryptoRoyale rules apply
+    ColorA damages ColorB
+    ColorB damages ColorC
+    ColorC damages ColorA
+
+    Loser loses 1 HP and is knocked back to last tile.
+    Winner gains 1 HP is stays on tile.
+
+}
+
+####TECHNICAL DETAILS####
