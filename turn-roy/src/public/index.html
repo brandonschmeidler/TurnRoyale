@@ -1,10 +1,36 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-    </head>
-    <body>
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="js/game.js"></script>
-    </body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="robots" content="index,follow" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="" />
+    <link
+      href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <title>Document</title>
+  </head>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+  </style>
+  <body
+    class="
+      bg-gray-700
+      flex
+      justify-center
+      items-center
+      flex-col
+      font-poppins
+      container
+    "
+  >
+    <h1 class="text-white mb-3 text-5xl">Turn Royale</h1>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/game.js"></script>
+  </body>
 </html>
