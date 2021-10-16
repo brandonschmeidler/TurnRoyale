@@ -77,8 +77,6 @@ function create ()
     socket.on('player_list', (player_list) => {
         console.log("receiving player list");
         Object.keys(player_list).forEach(function (id) {
-            console.log(player_list[id]);
-            //var p = player_list[id];
             players[id] = new GridPlayer(thisscene,player_list[id].x,player_list[id].y);
         });
     });
@@ -90,6 +88,13 @@ function create ()
         console.log(`Player Data: ${player}`);
         players[player.id] = new GridPlayer(thisscene,player.x,player.y);
     })
+
+    socket.on('player_left', (playerID) => {
+        players[playerID].destroy();
+        delete players[playerID];
+
+        console.log(players);
+    });
 }
 
 var dt = 0;
