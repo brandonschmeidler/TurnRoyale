@@ -67,10 +67,11 @@ var socket;
 
 function create ()
 {
-
     gameGrid = new GameGrid(this,0,0);
-    new GridPlayer(this,11,11);
     socket = io();
+
+    //freddy is my hero
+    var thisscene = this;
 
     // ran when this client first connects to get a current player list
     socket.on('player_list', (player_list) => {
@@ -78,7 +79,7 @@ function create ()
         Object.keys(player_list).forEach(function (id) {
             console.log(player_list[id]);
             //var p = player_list[id];
-            players[id] = new GridPlayer(this,player_list[id].x,player_list[id].y);
+            players[id] = new GridPlayer(thisscene,player_list[id].x,player_list[id].y);
         });
     });
 
@@ -87,13 +88,12 @@ function create ()
     socket.on('player_joined', (player) => {
         //players[player.id] = new GridPlayer(this,player.x,player.y);
         console.log(`Player Data: ${player}`);
-        players[player.id] = new GridPlayer(this,player.x,player.y);
+        players[player.id] = new GridPlayer(thisscene,player.x,player.y);
     })
-
-    ///playerA = new GridPlayer(this,1,0);
 }
 
 var dt = 0;
 function update(time,delta)
 {
+
 }
