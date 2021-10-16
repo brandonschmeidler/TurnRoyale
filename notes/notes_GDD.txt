@@ -72,3 +72,10 @@ IF (playerA and playerB are the same color) {
 }
 
 ####TECHNICAL DETAILS####
+
+class Match [server-side only]
+-player list: all the players in this match
+-orb list: all the orbs currently spawned
+-eliminated player list: all the players that have been eliminated
+
+idk i don't think i need this. make spaghetti first then you can plate it dude.

@@ -41,8 +41,6 @@ class GameGrid extends Phaser.GameObjects.Container {
 }
 
 
-
-
 var config = {
     type: Phaser.AUTO,
     width: 800,
@@ -75,7 +73,7 @@ function create ()
 
     // ran when this client first connects to get a current player list
     socket.on('player_list', (player_list) => {
-        console.log("receiving player list");
+        //console.log("receiving player list");
         Object.keys(player_list).forEach(function (id) {
             players[id] = new GridPlayer(thisscene,player_list[id].x,player_list[id].y);
         });
@@ -84,8 +82,7 @@ function create ()
     // ran when somebody else joins while this client is already connected
     // gives new connected player's data
     socket.on('player_joined', (player) => {
-        //players[player.id] = new GridPlayer(this,player.x,player.y);
-        console.log(`Player Data: ${player}`);
+        //console.log(`Player Data: ${player}`);
         players[player.id] = new GridPlayer(thisscene,player.x,player.y);
     })
 

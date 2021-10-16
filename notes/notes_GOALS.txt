@@ -1,0 +1,46 @@
+####[GAME FLOW NEEDS]####
+{ DONE 
+    Need to get a basic connection/player spawn established
+}
+
+{  
+    Client needs to notify server on player ready
+    -button to ready up [client]
+    -emit to server that player is ready [client]
+    -listen for player ready event [server]
+    -add ready player to next available match queue [server] (fuck me.... and we need a match queue)
+}
+
+{
+    Need server match queue where players are placed when they ready up.
+    Once enough players are added to the queue, count down and start a match.
+}
+
+{
+    After the game start countdown server broadcasts to all players that the PLANNING_PHASE_EVENT begins
+}
+
+{
+    Once client recieves PLANNING_PHASE_EVENT they have a set amount of time to select a sequence of tile positions
+    Timer is ran on client. Client sends SELECTED_TILE_SEQUENCE to Server when time runs out
+}
+
+{
+    Once server recieves and verifies all players' SELECTED_TILE_SEQUENCE, the game switches to MOVEMENT_PHASE which is where everything is calculated
+}
+
+
+
+
+
+
+
+
+
+
+####[MISC THOUGHTS]####
+Maybe need "Match" class but the more I think about it the less I think I need it.
+Need "Pickup" class for orbs and maybe upgrades or something
+Server needs to know map data
+Server needs to send map data to client
+How is the movement sequence calculated to make sure there is no "first-come-first-serve"? Is that not possible?
