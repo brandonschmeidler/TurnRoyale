@@ -5,9 +5,9 @@
 
 {  
     Client needs to notify server on player ready
-    -button to ready up [client]
-    -emit to server that player is ready [client]
-    -listen for player ready event [server]
+    -button to ready up [client] -done
+    -emit to server that player is ready [client] -done
+    -listen for player ready event [server] -done
     -add ready player to next available match queue [server] (fuck me.... and we need a match queue)
 }
 

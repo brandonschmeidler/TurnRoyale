@@ -1,3 +1,4 @@
+// Server 
 const express = require('express');
 const app = express();
 const http = require('http');
@@ -5,16 +6,14 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server);
 
-class Player {
-    constructor(id) {
-        this.x = 0;
-        this.y = 0;
-        this.color = (Math.floor(Math.random() * 2) == 0) ? 0xff0000 : 0x00ff00;
-        this.id = id;
-    }
-}
+// Game Classes
+const Player = require("./private/Player");
+const Match = require("./private/Match");
 
-var players = {};
+// Game
+const GRID_SIZE = 11;
+
+var currentMatch = new Match(GRID_SIZE);
 
 app.use(express.static(__dirname + '/public'));
 
@@ -24,30 +23,31 @@ app.get('/', (req,res) => {
 
 io.on('connection', (socket) => {
     console.log(`Socket ${socket.id} connected.`);
-    players[socket.id] = {
-        x: Math.floor(Math.random() * 10),
-        y: Math.floor(Math.random() * 10),
-        color: (Math.floor(Math.random() * 2) == 0) ? 0xff0000 : 0x00ff00,
-        id: socket.id
-    };
     
-    // send new connecting client the current player list
-    console.log(players);
-    socket.emit('player_list', players);
+    currentMatch.addPlayer(socket.id);
+    
+    // Send player list to this client
+    socket.emit("player_list",currentMatch.players);
 
-    // broadcast to everybody else that this new client is here
-    socket.broadcast.emit('player_joined', players[socket.id]);
+    // Tell already connected clients about this client
+    socket.broadcast.emit("player_joined", currentMatch.players[socket.id]);
 
+    // When this client disconnects
     socket.on('disconnect', () => {
+        
         console.log(`Socket ${socket.id} disconnected.`);
-        delete players[socket.id];
-        // one last holla back at ya boiii
-        socket.broadcast.emit('player_left',socket.id);
-        console.log(players);
+        currentMatch.removePlayer(socket.id);
+
+        // Tell the other clients that this client has left
+        socket.broadcast.emit("player_left",socket.id);
+
     });
 
+    // When this client clicks "Ready Up" button
     socket.on('player_ready', () => {
+        
         console.log(`${socket.id} is ready`);
+
     })
 
 });

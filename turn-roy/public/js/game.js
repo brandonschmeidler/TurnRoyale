@@ -52,6 +52,8 @@ var config = {
     }
 };
 
+
+
 function readyUp() {
     socket.emit('player_ready');
 }
