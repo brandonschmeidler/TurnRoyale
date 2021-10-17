@@ -40,7 +40,7 @@ class GameGrid extends Phaser.GameObjects.Container {
     }
 }
 
-
+var socket;
 var config = {
     type: Phaser.AUTO,
     width: 800,
@@ -52,6 +52,10 @@ var config = {
     }
 };
 
+function readyUp() {
+    socket.emit('player_ready');
+}
+
 var game = new Phaser.Game(config);
 
 function preload ()
@@ -61,12 +65,11 @@ function preload ()
 
 var players = {};
 var gameGrid;
-var socket;
 
 function create ()
 {
-    gameGrid = new GameGrid(this,0,0);
     socket = io();
+    gameGrid = new GameGrid(this,0,0);
 
     //freddy is my hero
     var thisscene = this;

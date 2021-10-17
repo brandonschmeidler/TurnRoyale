@@ -46,6 +46,10 @@ io.on('connection', (socket) => {
         console.log(players);
     });
 
+    socket.on('player_ready', () => {
+        console.log(`${socket.id} is ready`);
+    })
+
 });
 
 server.listen(8081,() => {
