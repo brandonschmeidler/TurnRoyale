@@ -30,6 +30,11 @@
 }
 
 
+####SERVER GAME FROM START TO END####
+server starts
+server waits for 4 clients to connect
+once 4 clients have connected server creates 4 player instances and randomly places them on grid
+game starts with planning phase 
 
 
 
@@ -39,6 +44,7 @@
 
 
 ####[MISC THOUGHTS]####
+Use rooms to split up users between matches and the main matchmaking room
 Maybe need "Match" class but the more I think about it the less I think I need it.
 Need "Pickup" class for orbs and maybe upgrades or something
 Server needs to know map data

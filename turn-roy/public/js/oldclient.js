@@ -3,7 +3,7 @@ const CELL_SIZE = 32;
 
 class GridObject extends Phaser.GameObjects.Sprite {
     constructor(scene,gridX,gridY,frame=0) {
-        super(scene,gridX,gridY,'tileset',frame);
+        super(scene,gridX,gridY,"tileset",frame);
         this.snapToGrid()
         scene.add.existing(this);
     }
@@ -54,15 +54,18 @@ var config = {
 
 
 
-function readyUp() {
-    socket.emit('player_ready');
+function gameJoin() {
+    socket.emit("game_join");
+}
+function gameLeave() {
+    socket.emit("game_leave");
 }
 
 var game = new Phaser.Game(config);
 
 function preload ()
 {
-    this.load.spritesheet('tileset','../assets/tileset.png',{frameWidth:32,frameHeight:32});
+    this.load.spritesheet("tileset","../assets/tileset.png",{frameWidth:32,frameHeight:32});
 }
 
 var players = {};
@@ -77,7 +80,7 @@ function create ()
     var thisscene = this;
 
     // ran when this client first connects to get a current player list
-    socket.on('player_list', (player_list) => {
+    socket.on("player_list", (player_list) => {
         //console.log("receiving player list");
         Object.keys(player_list).forEach(function (id) {
             players[id] = new GridPlayer(thisscene,player_list[id].x,player_list[id].y);
@@ -85,13 +88,13 @@ function create ()
     });
 
     // ran when somebody else joins while this client is already connected
-    // gives new connected player's data
-    socket.on('player_joined', (player) => {
+    // gives new connected player"s data
+    socket.on("player_joined", (player) => {
         //console.log(`Player Data: ${player}`);
         players[player.id] = new GridPlayer(thisscene,player.x,player.y);
     })
 
-    socket.on('player_left', (playerID) => {
+    socket.on("player_left", (playerID) => {
         players[playerID].destroy();
         delete players[playerID];
 
