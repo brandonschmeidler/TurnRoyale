@@ -12,6 +12,7 @@ var config = {
 var game = new Phaser.Game(config);
 var currentScene;
 var socket;
+var outlineSprite;
 
 const GRID_SIZE = 11;
 const CELL_SIZE = 32;
@@ -28,6 +29,13 @@ function create() {
     centerCamera();
     spawnGrid();
 
+    outlineSprite = currentScene.add.sprite(0,0,"tileset",3);
+    currentScene.input.on("pointermove", (pointer) => {
+        outlineSprite.x = Math.floor(((pointer.x + (CELL_SIZE / 2)) + currentScene.cameras.main.scrollX) / CELL_SIZE) * CELL_SIZE;
+        outlineSprite.y = Math.floor(((pointer.y + (CELL_SIZE / 2)) + currentScene.cameras.main.scrollY) / CELL_SIZE) * CELL_SIZE;
+        console.log(`Mouse: (${pointer.x},${pointer.y})`);
+    });
+
     socket = io();
 
     socket.on("spawn_players",(clients) => {
@@ -39,16 +47,15 @@ function create() {
     });
 }
 
-function update() {
-
-}
+function update() {}
 
 function centerCamera() {
     var gridBound = GRID_SIZE * CELL_SIZE;
     var cx = (CELL_SIZE / 2) + ((config.width - gridBound) / 2);
     var cy = (CELL_SIZE / 2) + ((config.height - gridBound) / 2);
     
-    currentScene.cameras.main.setBounds(-cx,-cy,config.width,config.height);
+    //currentScene.cameras.main.setBounds(-cx,-cy,config.width,config.height);
+    currentScene.cameras.main.setScroll(-cx,-cy);
 }
 
 function spawnGrid() {
