@@ -80,21 +80,40 @@ io.on("connection", (socket) => {
         var nextMatch = new Match(nextGameClients);
         runningMatches[ nextMatch.id ] = nextMatch;
         nextMatch.randomizePlayers();
+        console.log(`Creating new match ${nextMatch.id}.`)
 
         // Put the clients into their own room for the server to emit messages to
         // This should keep all the client groups separated in their own matches
         Object.keys(nextGameClients).forEach(id => {
+            nextGameClients[id].matchID = nextMatch.id;
             io.sockets.sockets.get(id).join(nextMatch.id);
+            console.log(io.sockets.sockets.get(id).rooms);
         });
-
 
         io.to(nextMatch.id).emit("spawn_players",nextMatch.players);
     }
 
     socket.on("disconnect", () => {
+
+        var client = clients[socket.id];
+        if (client.matchID != -1) {
+            console.log(`${socket.id} is leaving match ${client.matchID}.`)
+            var match = runningMatches[client.matchID];
+            match.removePlayer(socket.id);
+            
+            if (match.getPlayerCount() > 0) {
+                // Tell all the clients in this match that this player has disconnected
+                io.to(client.matchID).emit("remove_player",socket.id);
+            } else {
+                // Nobody is in the match anymore so delete that shnizzzz
+                console.log(`Deleting match ${match.id}.`)
+                delete runningMatches[match.id];
+            }
+        }
+
+        // Remove client from server's client list
         delete clients[socket.id];
-        console.log(`${socket.id} has disconnected. ${getClientCount()} players connected.`)
-        
+        console.log(`${socket.id} has disconnected. ${getClientCount()} clients connected.`)
         // If game is running tell other clients this client has disconnected
         // so they need to delete this client's player instance
         // if (isGameRunning()) {

@@ -8,7 +8,7 @@ class Match {
         this.id = uuidv4();
         
         Object.keys(clients).forEach(id => {
-            this.players[id] = new Player(id);
+            this.addPlayer(id);
         });
 
     }
@@ -23,6 +23,18 @@ class Match {
             this.players[id].color = colors[Math.floor(Math.random() * 3)];
         });
 
+    }
+
+    addPlayer(id) {
+        this.players[id] = new Player(id);
+    }
+
+    removePlayer(id) {
+        delete this.players[id];
+    }
+
+    getPlayerCount() {
+        return Object.keys(this.players).length;
     }
 
 }
