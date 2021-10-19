@@ -16,43 +16,80 @@ server.listen(8081,() => {
 });
 
 
-
-
+const Client = require("./private/Client");
+const Match = require("./private/Match");
 const Player = require("./private/Player");
 
 var clients = {};
+var runningMatches = {};
+
+var queuedClients = [];
+queuedClients.threshold = 4;
+queuedClients.queue = function(client) {
+    queuedClients.push(client);
+}
+queuedClients.dequeue = function() {
+    return queuedClients.shift();
+}
+
 function getClientCount() {
     return Object.keys(clients).length;
 }
 
-var isGameRunning = false;
-function gameStart() {
-    isGameRunning = true;
+function initClientConnection(socket) {
+    clients[socket.id] = new Client(socket.id);
 
-    console.log("Game is starting.");
-
-    // randomly position clients on grid
-    Object.keys(clients).forEach(id => {
-        clients[id].x = Math.floor(Math.random() * 10);
-        clients[id].y = Math.floor(Math.random() * 10);
-        clients[id].color = Math.floor(Math.random() * 2) == 0 ? 0xffff00 : 0x00ffff;
-    });
-
-    io.emit("spawn_players",clients);
-}
-
-function gameEnd() {
-    isGameRunning = false;
-    console.log("Game has ended.");
-}
-
-io.on("connection", (socket) => {
-
-    clients[socket.id] = new Player(socket.id);
-    
     console.log(`${socket.id} has connected. ${getClientCount()} players connected.`);
     
-    if (!isGameRunning && getClientCount() === 4) { gameStart(); }
+    return clients[socket.id];
+}
+
+function queueClientForNextGame(client) {
+    queuedClients.push(client);
+}
+
+// function gameStart() {
+//     console.log("Game is starting.");
+//     currentMatch = new Match(clients);
+//     io.emit("spawn_players",clients);
+// }
+
+// function gameEnd() {
+//     currentMatch = null;
+//     console.log("Game has ended.");
+// }
+
+io.on("connection", (socket) => {
+    var client = initClientConnection(socket);
+
+    queuedClients.queue(client);
+    
+    // if there are enough clients queued for a game
+    // setup a new match
+    if (queuedClients.length === queuedClients.threshold) {
+        
+        // Pull clients out of the queue and put them in a list
+        var nextGameClients = {};
+        for (var i = 0; i < queuedClients.threshold; ++i) {
+            var nextClient = queuedClients.dequeue();
+            nextGameClients[nextClient.id] = nextClient;
+        }
+        
+        // Create a new match instance with those clients
+        // and add the new match to the list of running matches
+        var nextMatch = new Match(nextGameClients);
+        runningMatches[ nextMatch.id ] = nextMatch;
+        nextMatch.randomizePlayers();
+
+        // Put the clients into their own room for the server to emit messages to
+        // This should keep all the client groups separated in their own matches
+        Object.keys(nextGameClients).forEach(id => {
+            io.sockets.sockets.get(id).join(nextMatch.id);
+        });
+
+
+        io.to(nextMatch.id).emit("spawn_players",nextMatch.players);
+    }
 
     socket.on("disconnect", () => {
         delete clients[socket.id];
@@ -60,14 +97,14 @@ io.on("connection", (socket) => {
         
         // If game is running tell other clients this client has disconnected
         // so they need to delete this client's player instance
-        if (isGameRunning) {
-            socket.broadcast.emit("remove_player",socket.id);
+        // if (isGameRunning()) {
+        //     socket.broadcast.emit("remove_player",socket.id);
 
-            // Nobody is connected anymore so no game
-            if (getClientCount() === 0) {
-                gameEnd();
-            }
-        }
+        //     // Nobody is connected anymore so no game
+        //     if (getClientCount() <= 1) {
+        //         gameEnd();
+        //     }
+        // }
     });
 
 });

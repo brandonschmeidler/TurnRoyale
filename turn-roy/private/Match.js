@@ -1,39 +1,28 @@
 const Player = require('./Player');
+const { v4: uuidv4 } = require("uuid");
 
 class Match {
 
-    constructor(gridSize = 11) {
-
-        this.gridSize = gridSize;
+    constructor(clients) {
         this.players = {};
-        this.playerGrid = []
-        for (var i = 0; i < gridSize; ++i) {
-            this.playerGrid[i] = [];
-            for (var j = 0; j < gridSize; ++j) {
-                this.playerGrid[i][j] = 0;
-            }
-        }
+        this.id = uuidv4();
+        
+        Object.keys(clients).forEach(id => {
+            this.players[id] = new Player(id);
+        });
 
     }
 
-    addPlayer(id) {
-        var gridX = Math.floor(Math.random() * (this.gridSize-1));
-        var gridY = Math.floor(Math.random() * (this.gridSize-1));
+    randomizePlayers() {
 
-        // If first random position is already taken 
-        // find an open spot on the grid
-        while (this.playerGrid[gridX][gridY] != 0) {
-            gridX = Math.floor(Math.random() * (this.gridSize-1));
-            gridY = Math.floor(Math.random() * (this.gridSize-1));
-        }
+        Object.keys(this.players).forEach(id => {
+            this.players[id].x = Math.floor(Math.random() * 10);
+            this.players[id].y = Math.floor(Math.random() * 10);
+    
+            var colors = [ 0xffff00, 0x00ffff, 0xff00ff ];
+            this.players[id].color = colors[Math.floor(Math.random() * 3)];
+        });
 
-        this.players[id] = new Player(id,gridX,gridY);
-    }
-
-    removePlayer(id) {
-        var player = this.players[id];
-        this.playerGrid[player.x][player.y] = 0;
-        delete this.players[id];
     }
 
 }

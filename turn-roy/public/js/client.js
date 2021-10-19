@@ -9,15 +9,15 @@ var config = {
     }
 };
 
+const GRID_SIZE = 11;
+const CELL_SIZE = 32;
 var game = new Phaser.Game(config);
 var currentScene;
 var socket;
 var outlineSprite;
-
-const GRID_SIZE = 11;
-const CELL_SIZE = 32;
-
 var playerSprites = {};
+var isGameRunning = false;
+
 
 function preload () {
     this.load.spritesheet("tileset","../assets/tileset.png",{frameWidth:CELL_SIZE,frameHeight:CELL_SIZE});
@@ -29,12 +29,9 @@ function create() {
     centerCamera();
     spawnGrid();
 
+
     outlineSprite = currentScene.add.sprite(0,0,"tileset",3);
-    currentScene.input.on("pointermove", (pointer) => {
-        outlineSprite.x = Math.floor(((pointer.x + (CELL_SIZE / 2)) + currentScene.cameras.main.scrollX) / CELL_SIZE) * CELL_SIZE;
-        outlineSprite.y = Math.floor(((pointer.y + (CELL_SIZE / 2)) + currentScene.cameras.main.scrollY) / CELL_SIZE) * CELL_SIZE;
-        console.log(`Mouse: (${pointer.x},${pointer.y})`);
-    });
+    outlineSprite.visible = false;
 
     socket = io();
 
@@ -45,9 +42,17 @@ function create() {
     socket.on("remove_player",(id) => {
         removePlayer(id);
     });
+
+    socket.on("test_timer",(msg) => {
+        console.log(msg);
+    });
 }
 
-function update() {}
+function update() {
+
+}
+
+
 
 function centerCamera() {
     var gridBound = GRID_SIZE * CELL_SIZE;
@@ -69,6 +74,12 @@ function spawnGrid() {
 function spawnPlayers(clients) {
     Object.keys(clients).forEach(id => {
         var client = clients[id];
+        if (client.id === socket.id) {
+            // this is my player piece
+            outlineSprite.x = client.x * CELL_SIZE;
+            outlineSprite.y = client.y * CELL_SIZE;
+            outlineSprite.visible = true; 
+        }
         playerSprites[client.id] = currentScene.add.sprite(client.x * CELL_SIZE,client.y * CELL_SIZE,"tileset",1);
         playerSprites[client.id].tint = client.color;
     });
@@ -78,6 +89,8 @@ function removePlayer(id) {
     playerSprites[id].destroy();
     delete playerSprites[id];
 }
+
+
 
 // const ROOM_MATCHMAKING = "matchmaking";
 // const ROOM_GAME = "game";
