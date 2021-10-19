@@ -27,7 +27,6 @@ var queuedClients = [];
 queuedClients.threshold = 4;
 queuedClients.queue = function(client) {
     queuedClients.push(client);
-    console.log(queuedClients.length);
 }
 queuedClients.dequeue = function() {
     return queuedClients.shift();
@@ -84,6 +83,21 @@ function initNewMatch() {
     io.to(match.id).emit("spawn_players",match.players);
 }
 
+function removeClientFromMatch(client) {
+    console.log(`${client.id} is leaving match ${client.matchID}.`)
+    var match = runningMatches[client.matchID];
+    match.removePlayer(client.id);
+    
+    if (match.getPlayerCount() > 0) {
+        // Tell all the clients in this match that this player has disconnected
+        io.to(client.matchID).emit("remove_player",client.id);
+    } else {
+        // Nobody is in the match anymore so delete that shnizzzz
+        console.log(`Deleting match ${match.id}.`)
+        delete runningMatches[match.id];
+    }
+}
+
 io.on("connection", (socket) => {
     var client = initClientConnection(socket);
     
@@ -93,92 +107,15 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
 
         var client = clients[socket.id];
+        
         if (client.matchID != -1) {
-            console.log(`${socket.id} is leaving match ${client.matchID}.`)
-            var match = runningMatches[client.matchID];
-            match.removePlayer(socket.id);
-            
-            if (match.getPlayerCount() > 0) {
-                // Tell all the clients in this match that this player has disconnected
-                io.to(client.matchID).emit("remove_player",socket.id);
-            } else {
-                // Nobody is in the match anymore so delete that shnizzzz
-                console.log(`Deleting match ${match.id}.`)
-                delete runningMatches[match.id];
-            }
+            removeClientFromMatch(client);
         }
 
         // Remove client from server's client list
         delete clients[socket.id];
         console.log(`${socket.id} has disconnected. ${getClientCount()} clients connected.`);
+
     });
 
 });
-
-
-// // Game Classes
-// const Match = require("./private/Match");
-
-// // Game
-// const GRID_SIZE = 11;
-// var currentMatch = new Match(GRID_SIZE);
-
-// function player_connected(socket) {
-//     console.log(`Player ${socket.id} has connected.`);
-// }
-
-// function player_disconnected(socket) {
-//     console.log(`Player ${socket.id} has disconnected.`);
-// }
-
-// function player_join_game(socket) {
-//     currentMatch.addPlayer(socket.id);
-//     console.log(`${socket.id} has joined the game.`)
-// }
-
-// function player_leave_game(socket) {
-//     currentMatch.removePlayer(socket.id);
-//     console.log(`${socket.id} has left the game.`);
-// }
-
-
-// io.on("connection", (socket) => {
-    
-//     // player has only connected to the server
-//     // they haven't joined a game yet
-//     player_connected(socket);
-    
-//     // Send player list to client
-//     socket.emit("player_list",currentMatch.players);
-
-//     // Broadcast to all clients that a new client has joined
-//     socket.broadcast.emit("player_connected", currentMatch.players[socket.id]);
-
-//     // When this client disconnects
-//     socket.on("disconnect", () => {
-        
-//         player_disconnected();
-        
-//         // only if player is actively in a match
-//         //currentMatch.removePlayer(socket.id);
-
-//         // Tell the other clients that this client has left
-//         socket.broadcast.emit("player_disconnected",socket.id);
-
-//     });
-
-//     // When this client clicks "Join Game" button
-//     socket.on("game_join", () => {
-        
-//         player_join_game(socket.id);
-
-//     });
-
-//     // When client clicks "Leave Game" Button
-//     socket.on("game_leave", () => {
-
-//         player_leave_game(socket.id);
-
-//     })
-
-// });
