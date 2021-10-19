@@ -27,9 +27,11 @@ var queuedClients = [];
 queuedClients.threshold = 4;
 queuedClients.queue = function(client) {
     queuedClients.push(client);
+    console.log(queuedClients.length);
 }
 queuedClients.dequeue = function() {
     return queuedClients.shift();
+    
 }
 
 function getClientCount() {
@@ -38,60 +40,55 @@ function getClientCount() {
 
 function initClientConnection(socket) {
     clients[socket.id] = new Client(socket.id);
+    queuedClients.queue(clients[socket.id]);
 
     console.log(`${socket.id} has connected. ${getClientCount()} players connected.`);
     
     return clients[socket.id];
 }
 
-function queueClientForNextGame(client) {
-    queuedClients.push(client);
+function dequeueClientGroupForNewMatch() {
+    // Pull clients out of the queue and put them in a list
+    var clientGroup = {};
+    for (var i = 0; i < queuedClients.threshold; ++i) {
+        var client = queuedClients.dequeue();
+        clientGroup[client.id] = client;
+    }
+    return clientGroup;
 }
 
-// function gameStart() {
-//     console.log("Game is starting.");
-//     currentMatch = new Match(clients);
-//     io.emit("spawn_players",clients);
-// }
+function createNewMatch(clientGroup) {
+    
+    // Create a new match instance with those clients
+    // and add the new match to the list of running matches
+    var match = new Match(clientGroup);
+    runningMatches[ match.id ] = match;
+    match.randomizePlayers();
+    console.log(`Creating new match ${match.id}.`);
 
-// function gameEnd() {
-//     currentMatch = null;
-//     console.log("Game has ended.");
-// }
+    // Put the clients into their own room for the server to emit messages to
+    // This should keep all the client groups separated in their own matches
+    Object.keys(clientGroup).forEach(id => {
+        clientGroup[id].matchID = match.id;
+        io.sockets.sockets.get(id).join(match.id);
+    });
+
+    return match;
+}
+
+function initNewMatch() {
+    var clientGroup = dequeueClientGroupForNewMatch();
+    
+    var match = createNewMatch(clientGroup);
+
+    io.to(match.id).emit("spawn_players",match.players);
+}
 
 io.on("connection", (socket) => {
     var client = initClientConnection(socket);
-
-    queuedClients.queue(client);
     
-    // if there are enough clients queued for a game
-    // setup a new match
-    if (queuedClients.length === queuedClients.threshold) {
-        
-        // Pull clients out of the queue and put them in a list
-        var nextGameClients = {};
-        for (var i = 0; i < queuedClients.threshold; ++i) {
-            var nextClient = queuedClients.dequeue();
-            nextGameClients[nextClient.id] = nextClient;
-        }
-        
-        // Create a new match instance with those clients
-        // and add the new match to the list of running matches
-        var nextMatch = new Match(nextGameClients);
-        runningMatches[ nextMatch.id ] = nextMatch;
-        nextMatch.randomizePlayers();
-        console.log(`Creating new match ${nextMatch.id}.`)
-
-        // Put the clients into their own room for the server to emit messages to
-        // This should keep all the client groups separated in their own matches
-        Object.keys(nextGameClients).forEach(id => {
-            nextGameClients[id].matchID = nextMatch.id;
-            io.sockets.sockets.get(id).join(nextMatch.id);
-            console.log(io.sockets.sockets.get(id).rooms);
-        });
-
-        io.to(nextMatch.id).emit("spawn_players",nextMatch.players);
-    }
+    // if there are enough clients queued for a game setup a new match
+    if (queuedClients.length === queuedClients.threshold) { initNewMatch(); }
 
     socket.on("disconnect", () => {
 
@@ -113,17 +110,7 @@ io.on("connection", (socket) => {
 
         // Remove client from server's client list
         delete clients[socket.id];
-        console.log(`${socket.id} has disconnected. ${getClientCount()} clients connected.`)
-        // If game is running tell other clients this client has disconnected
-        // so they need to delete this client's player instance
-        // if (isGameRunning()) {
-        //     socket.broadcast.emit("remove_player",socket.id);
-
-        //     // Nobody is connected anymore so no game
-        //     if (getClientCount() <= 1) {
-        //         gameEnd();
-        //     }
-        // }
+        console.log(`${socket.id} has disconnected. ${getClientCount()} clients connected.`);
     });
 
 });
